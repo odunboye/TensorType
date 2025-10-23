@@ -2,6 +2,7 @@ module Data.Container.InstanceInterfaces
 
 import Data.Vect
 import Decidable.Equality
+import Data.Fin.Split
 
 
 import Data.Container.Object.Definition
@@ -36,6 +37,10 @@ namespace VectInstances
   {n : Nat} -> Num a => Algebra (Vect' n) a where
     reduce v = reduce (toVect v)
 
+  public export
+  {n : Nat} -> Traversable (Vect' n) where
+    traverse f v = fromVect <$> traverse f (toVect v)
+
   -- Applicative and Naperian instance follow because the set of shapes is ()
 
   -- analogus to Misc.takeFin, but for Vect'
@@ -43,6 +48,12 @@ namespace VectInstances
   take : {n : Nat} ->
     (s : Fin (S n)) -> Vect' n a -> Vect' (finToNat s) a
   take s = fromVect . takeFin s . toVect
+
+  public export
+  (++) : {n : Nat} -> Vect' n a -> Vect' m a -> Vect' (n + m) a
+  (++) v1 v2 = () <| \i => case splitSum i of
+    Left i1 => index v1 i1
+    Right i2 => index v2 i2
 
 {---
 Ideally, all instances would be defined in terms of ConcreteTypes,

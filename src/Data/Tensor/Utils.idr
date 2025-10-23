@@ -20,6 +20,8 @@ Mirrors those found in numpy/pytorch, and includes:
 * oneHot
 and the corresponding container variants, when they exist.
 
+Naming needs to be made more consistent
+
 -------------------------------------------------------------------------------}
 -------------------------------------------------------------------------------}
 
@@ -86,15 +88,14 @@ namespace Range
     public export
     arange : {stop : Nat} ->
       Cast Nat a => Tensor [stop] a
-    arange {stop} = fromConcreteTy $
-      (cast . finToNat) <$> positions {f=Vect (stop)}
+    arange {stop} = ># (cast . finToNat) <$> positions {f=Vect (stop)}
 
   namespace TwoArgs
     ||| A range of numbers [start, stop>
     public export
     arange : {default 0 start : Nat} -> {stop : Nat} ->
       Cast Nat a => Tensor [minus stop start] a
-    arange {start} {stop} = fromConcreteTy $
+    arange {start} {stop} = >#
       (cast . (+start) . finToNat) <$> positions {f=Vect (minus stop start)}
 
   ||| Here the type 'a' has to somehow be dependent on the shape?
@@ -212,24 +213,71 @@ namespace Triangular
     (\(maskVal, tVal) => if maskVal then fill else tVal)
 
 
+namespace Misc
+  public export
+  sum : {shape : List Cont} ->
+    Algebra (CTensor shape) a =>
+    CTensor shape a -> a
+  sum = reduce
+
+  public export
+  mean : {shape : List Nat} ->
+    Cast Nat a =>
+    Fractional a => 
+    Algebra (Tensor shape) a =>
+    Tensor shape a -> a
+  mean t = reduce t / cast (size t)
+
+  public export
+  variance : {n : Nat} -> Neg a => Fractional a => Cast Nat a =>
+    Tensor [n] a -> a
+  variance t =
+    let inputMinusMean = t - pure (mean {shape=[n]} t)
+    in mean {shape=[n]} (inputMinusMean * inputMinusMean)
+
+
 
 namespace Traversals
   public export
   inorder : CTensor [BinTreeNode] a -> CTensor [List] a
   inorder = extToVector . extMap BinTreeNode.inorder . vectorToExt
 
-
 namespace Random
--- TODO Fix for strided
--- public export
--- {shape : List Nat} -> Random a => Random (Tensor shape a) where
---   randomIO = map (fromArray . toArrayHelper) randomIO
---   
---   randomRIO (lo, hi) = do
---     let loFlat = flatten lo
---     let hiFlat = flatten hi
---     randomVect <- randomRIO (loFlat, hiFlat)
---     pure $ fromArray (toArrayHelper randomVect)
--- 
--- random : Random a => (shape : List Nat) -> IO (Tensor shape a)
--- random shape = randomIO
+  public export
+  Random a =>
+  Applicative (Tensor shape) => -- again, should we need this?
+  Traversable (Tensor shape) =>
+  Random (Tensor shape a) where
+    randomIO = sequence (pure randomIO)
+   
+    randomRIO (lo, hi) = sequence $ randomRIO <$> liftA2 lo hi 
+
+-- Idris can't find the parametric randomIO interface so reimpementing here 
+public export
+random : Num a => Random a => HasIO io =>
+  (shape : List Nat) ->
+  Applicative (Tensor shape) => 
+  Traversable (Tensor shape) => 
+  io (Tensor shape a)
+random shape = sequence $ pure $ randomRIO (0, 1)
+
+tt : Traversable (Vect 2)
+tt = %search
+
+ttt : Traversable (Ext (Vect 2))
+ttt = %search
+
+tttt : Traversable (Tensor [2])
+tttt = %search
+
+testRand : IO (Tensor [2, 3] Double)
+testRand = do 
+  t <- random [2,3]
+  printLn $ show t
+  pure t
+
+testRand2 : IO (Tensor [5] Double)
+testRand2 = random [5]
+
+testRand3 : IO Unit
+testRand3 = randomIO

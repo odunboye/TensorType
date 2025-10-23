@@ -8,14 +8,16 @@ import Data.Tensor
 -- Examples of standard, cubical tensors
 ----------------------------------------
 
-||| Now you can construct Tensors directly
+||| Now you can construct Tensors directly:
 t0 : Tensor [3, 4] Double
-t0 = fromConcreteTy [ [0, 1, 2, 3]
-                    , [4, 5, 6, 7]
-                    , [8, 9, 10, 11]]
+t0 = ># [ [0, 1, 2, 3]
+        , [4, 5, 6, 7]
+        , [8, 9, 10, 11]]
 
 
-||| or by using functions analogous to numpy's, such as `np.arange` or `np.reshape`
+-- where `>#` should be read as a map (`>`) into tensor (`#`), and behaves like a constructor.
+
+||| You can also use use functions analogous to numpy's, such as `np.arange` and `np.reshape`:
 t1 : Tensor [6] Double
 t1 = arange
 
@@ -29,9 +31,9 @@ where the difference between numpy is that these operations are typechecked
 -}
 failing
   failConcrete : Tensor [3, 4] Double
-  failConcrete = fromConcreteTy [ [0, 1, 2, 3, 999]
-                                , [4, 5, 6, 7]
-                                , [8, 9, 10, 11]]
+  failConcrete = ># [ [0, 1, 2, 3, 999]
+                    , [4, 5, 6, 7]
+                    , [8, 9, 10, 11]]
 
 failing
   failReshape : Tensor [7, 2] Double
@@ -103,7 +105,7 @@ t0Again = t0
 
 ||| Including building concrete Tensors
 t1again : CTensor [Vect 6] Double
-t1again = fromConcreteTy [1,2,3,4,5,6]
+t1again = ># [1,2,3,4,5,6]
 
 {-
 Here, the container `Vect` is made explicit in the type. 
@@ -116,7 +118,7 @@ Here is a container `BinTree` of binary trees recast as a tree-tensor:
 (-42)  46 
 -}
 treeExample1 : CTensor [BinTree] Double
-treeExample1 = fromConcreteTy $ Node 60 (Node 7 (Leaf (-42)) (Leaf 46)) (Leaf 2)
+treeExample1 = ># Node 60 (Node 7 (Leaf (-42)) (Leaf 46)) (Leaf 2)
 
 {- 
 This container allows us to store an arbitrary number of elements, unlike `Vect`. Here is another tree-tensor.
@@ -125,7 +127,7 @@ This container allows us to store an arbitrary number of elements, unlike `Vect`
 100  4
 -}
 treeExample2 : CTensor [BinTree] Double
-treeExample2 = fromConcreteTy $ Node 5 (Leaf 100) (Leaf 4)
+treeExample2 = ># Node 5 (Leaf 100) (Leaf 4)
 
 
 ||| The benefit of this representation is that all linear algebra operations 
@@ -145,7 +147,7 @@ Here's a tree-tensor with values only on its leaves:
 (-42)  46 
 -}
 treeLeafExample : CTensor [BinTreeLeaf] Double
-treeLeafExample = fromConcreteTy $ Node' (Node' (Leaf (-42)) (Leaf 46)) (Leaf 2)
+treeLeafExample = ># Node' (Node' (Leaf (-42)) (Leaf 46)) (Leaf 2)
 
 {-
 and here's a tree-tensor with values only on its nodes:
@@ -156,15 +158,15 @@ and here's a tree-tensor with values only on its nodes:
    *   * 
 -}
 treeNodeExample : CTensor [BinTreeNode] Double
-treeNodeExample = fromConcreteTy $ Node 60 (Node 7 Leaf' Leaf')  Leaf'
+treeNodeExample = ># Node 60 (Node 7 Leaf' Leaf')  Leaf'
 
 ||| And this can get very complex and nested, as `exTree3` and `exTree4` show.
 |||  But it still fully type-checked, and working as you'd expect.
 treeExample3 : CTensor [BinTreeNode, Vect 2] Double
-treeExample3 = fromConcreteTy $ Node [4,1] (Node [17, 4] Leaf' Leaf') Leaf'
+treeExample3 = ># Node [4,1] (Node [17, 4] Leaf' Leaf') Leaf'
 
 treeExample4 : CTensor [BinTreeNode, BinTreeLeaf, Vect 3] Double
-treeExample4 = fromConcreteTy $
+treeExample4 = >#
   Node (Node'
           (Leaf [1,2,3])
           (Leaf [4,5,6]))

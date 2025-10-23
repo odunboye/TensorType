@@ -193,6 +193,24 @@ namespace TensorFromConcrete
     CTensor shape a -> concreteTypeTensor shape a
   toConcreteTy = fromTensor
 
+  public export prefix 0 >#, #>
+  
+  ||| Prefix operator for converting from a concrete type to a tensor
+  ||| We read it as a map `>` going into the tensor `#`
+  public export
+  (>#) : {shape : List Cont} ->
+    (allConcrete : AllConcrete shape) =>
+    concreteTypeTensor shape a -> CTensor shape a
+  (>#) = fromConcreteTy
+
+  ||| Prefix operator for converting from a tensor to concrete type
+  ||| We read it as a map `>` going out of the tensor `#`
+  public export
+  (#>) : {shape : List Cont} ->
+    (allConcrete : AllConcrete shape) =>
+    CTensor shape a -> concreteTypeTensor shape a
+  (#>) = toConcreteTy
+
 
 namespace TensorInstances
   namespace ApplicativeInstance
@@ -792,24 +810,24 @@ namespace SetterGetter
 
   public export
   t00 : CTensor [Maybe, List] Integer
-  t00 = fromConcreteTy $ Just [10, 20, 30, 40, 50, 60, 70]
+  t00 = ># Just [10, 20, 30, 40, 50, 60, 70]
   
   public export
   t11 : Tensor [2, 3] Integer
-  t11 = fromConcreteTy [[1,2,3], [4,5,6]]
+  t11 = ># [[1,2,3], [4,5,6]]
   
   public export
   t22 : CTensor [BinTree, List] Integer
-  t22 = fromConcreteTy (Node [1,2] (Leaf [3,4]) (Leaf [5,6]))
+  t22 = ># Node [1,2] (Leaf [3,4]) (Leaf [5,6])
 
   t33 : CTensor [BinTree] Integer
-  t33 = fromConcreteTy (Node 1 (Leaf 2) (Leaf 3))
+  t33 = ># Node 1 (Leaf 2) (Leaf 3)
 
   t333 : CTensor [Vect 2] Integer
-  t333 = fromConcreteTy [1, 2]
+  t333 = ># [1, 2]
   
   t44 : CTensor [] Integer
-  t44 = fromConcreteTy 13
+  t44 = ># 13
 
   public export
   jj : Integer
@@ -866,3 +884,13 @@ namespace Slice
   ||| What does it mean to slice a non-cubical tensor?
   ||| CTensor [BinTree, List] a
   namespace NonCubicalSlicing
+
+
+
+namespace Concatenate
+  ||| Concatenate two tensors along an existing axis, the first one
+  ||| TODO extend to allow concatenation along an arbitrary axis
+  public export
+  concat : {shape : List Nat} -> {x : Nat} ->
+    Tensor (x :: shape) a -> Tensor (y :: shape) a -> Tensor (x + y :: shape) a
+  concat t t' = embedTopExt $ extractTopExt t ++ extractTopExt t'

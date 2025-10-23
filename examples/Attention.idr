@@ -25,9 +25,9 @@ SelfAttentionMat {causalMask} = case causalMask of
 
 ||| Let's fix a simple input matrix
 inputMatrix : Tensor [3, 2] Double
-inputMatrix = fromConcreteTy [ [1, 3]
-                             , [2, -3]
-                             , [0, 0.3]]
+inputMatrix = ># [ [1, 3]
+                 , [2, -3]
+                 , [0, 0.3]]
 
 ||| Let's fix attention parameters for the query, key and value matrices.
 ||| For instance, a matrix of ones, a triangular matrix, and a matrix of threes
@@ -54,10 +54,9 @@ SelfAttentionTree = SelfAttention softargmax
 ||| We fix a simple input tree
 ||| Notably, the set of parameters can be the same as the one for matrices
 inputTree : CTensor [BinTreeLeaf, Vect 2] Double
-inputTree = fromConcreteTy $
-  Node' (Node' (Leaf [1, -1])
-               (Leaf [0.5, 1.2]))
-        (Leaf [-0.3, 1.2])
+inputTree = ># Node' (Node' (Leaf [1, -1])
+                            (Leaf [0.5, 1.2]))
+                     (Leaf [-0.3, 1.2])
 
 ||| We can run self attention on the tree, and inspect the result
 outputTree : CTensor [BinTreeLeaf, Vect 2] Double
