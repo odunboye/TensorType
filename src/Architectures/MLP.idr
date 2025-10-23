@@ -51,16 +51,16 @@ simpleNLayerNet n = multiLayerPerceptron n (trivialParam Tensor.sigmoid)
 
 public export
 exampleInput : Tensor [2] Double
-exampleInput = fromConcreteTy [1, 5]
+exampleInput = ># [1, 5]
 
 public export
 exampleParam : Tensor [2, 2] Double
-exampleParam = fromConcreteTy [ [0.1, 0.2]
-                              , [0.7, -3]]
+exampleParam = ># [ [0.1, 0.2]
+                  , [0.7, -3]]
 
 public export
 exampleBias : Tensor [2] Double
-exampleBias = fromConcreteTy [0, 0]
+exampleBias = ># [0, 0]
 
 public export
 layerParam : AffineLayerParams (Vect 2) (Vect 2) Double 
