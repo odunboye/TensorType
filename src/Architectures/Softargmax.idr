@@ -2,6 +2,7 @@ module Architectures.Softargmax
 
 import Data.Tensor
 
+||| Commonly known as 'softmax'
 public export
 softargmax : {i : Cont} -> Fractional a => Exp a =>
   (allAlg : AllAlgebra [i] a) =>

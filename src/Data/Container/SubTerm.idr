@@ -18,6 +18,7 @@ public export
 isSubTerm : MOrd a => a -> a -> Bool
 isSubTerm x y = case mcompare x y of
   Just LT => True
+  Just EQ => True
   _ => False
 
 -- ||| Should generally be possible to derive with metaprogramming
