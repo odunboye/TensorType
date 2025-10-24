@@ -74,6 +74,14 @@ Exp Double where
   exp = Prelude.exp
   minusInfinity = cast "-inf.0"
 
+public export
+interface Sqrt a where
+  sqrt : a -> a
+
+public export
+Sqrt Double where
+  sqrt = Prelude.sqrt
+
 
 ||| Pointwise Num structure for Applicative functors
 public export
@@ -81,13 +89,6 @@ public export
   xs + ys = uncurry (+) <$> liftA2 xs ys
   xs * ys = uncurry (*) <$> liftA2 xs ys
   fromInteger = pure . fromInteger
-
--- Probably there's a faster way to do this
-public export
-{n : Nat} -> Random a => Random (Vect n a) where
-  randomIO = sequence $ replicate n randomIO
-  randomRIO (lo, hi) = sequence $ zipWith (\l, h => randomRIO (l, h)) lo hi
-
 
 namespace Vect
   public export
@@ -131,19 +132,35 @@ public export
 interface Display (a : Type) where
   display : (x : a) -> (h : Nat ** w : Nat ** Vect h ((Vect w) Char))
 
-||| Any type that implements Display can be shown as a string
-public export
-{a : Type} -> Display a => Show a where
-  show x = let (h ** w ** xs) = display x
-               ss = toList (intersperse "\n" (pack . toList <$> xs)) -- add intercalate here, and newline
-           in fastUnlines ss
+-- ||| Any type that implements Display can be shown as a string
+-- public export
+-- {a : Type} -> Display a => Show a where
+--   show x = let (h ** w ** xs) = display x
+--                ss = toList (intersperse "\n" (pack . toList <$> xs)) -- add intercalate here, and newline
+--            in fastUnlines ss
 
-public export
-Display Char where
-  display x = (1 ** 1 ** [[x]])
+-- public export
+-- Display Char where
+--   display x = (1 ** 1 ** [[x]])
 
 
 
+namespace RandomUtils
+-- Probably there's a faster way to do this
+-- public export
+-- {n : Nat} -> Random a => Random (Vect n a) where
+--   randomIO = sequence $ replicate n randomIO
+--   randomRIO (lo, hi) = sequence $ zipWith (\l, h => randomRIO (l, h)) lo hi
+
+  public export
+  Random Unit where
+    randomIO = pure ()
+    randomRIO _ = pure ()
+
+  public export
+  Random a => Random b => Random (a, b) where
+    randomIO = ?what
+    randomRIO (lo, hi) = ?what2
 
 
 
@@ -508,15 +525,3 @@ filter'' p (x :: xs) with (filter' p xs)
 Prelude.absurd : Uninhabited t => t -> a
 
  -}
-
-
-gg : Functor (Maybe . Maybe)
---gg = let t = Functor.Compose in ?gg_rhs
-
-
-
-
-
-
-
-
