@@ -699,8 +699,8 @@ namespace Reshape
   wrap : {c, d : Cont} ->
     c =%> d ->
     Cont.Tensor [c] =%> Cont.Tensor [d]
-  wrap (fwd <%! bwd) = (\e => fwd (shapeExt e) <| \_ => ()) <%!
-    (\e, (cp ** ()) => (bwd (shapeExt e) cp ** ()))
+  wrap (!% f) = !% \e => let (y ** ky) = f (shapeExt e)
+                         in (y <| \_ => () ** \(cp ** ()) => (ky cp ** ()))
 
   ||| Effectively a wrapper around `extMap`
   ||| Allows us to define views, traversals and general reshaping
@@ -745,7 +745,7 @@ namespace Reshape
   dLensReshape : {oldShape, newShape : List Nat} ->
     {auto prf : prod oldShape = prod newShape} ->
     Vect (prod oldShape) =%> Vect (prod newShape)
-  dLensReshape = id <%! \(), i => rewrite prf in i
+  dLensReshape = !% \() => (() ** \i => rewrite prf in i)
 
   ||| Restructuring for cubical tensors that leaves number of elements unchanged
   public export

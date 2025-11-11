@@ -1,6 +1,7 @@
 module Data.Container.Morphism.Instances
 
 import Data.Fin
+import Data.Fin.Split
 
 import Data.Container.Object.Instances
 import Data.Container.Morphism.Definition
@@ -15,7 +16,13 @@ public export
 extMap : {c, d : Cont} ->
   c =%> d ->
   Ext c a -> Ext d a
-extMap (fwd <%! bwd) (sh <| index) = fwd sh <| index . bwd sh
+extMap (!% f) (sh <| index) = let (y ** ky) = f sh
+                              in y <| (index . ky)
+
+
+||| Reshape is an isomorphism!
+reshapeVectIndexes : {n, m : Nat} -> (Vect n >< Vect m) =%> Vect (n * m)
+reshapeVectIndexes = !% \((), ()) => (() ** splitProd) 
   
 
 -- need to organise this
@@ -51,16 +58,12 @@ namespace BinTreeNode
   inorder = !% \b => (numNodes b ** inorderBackward b)
 
 
-
   -- TODO reshape commented out for the same reason as reshapeTensorA is
   -- public export
   -- reshape : {oldShape, newShape : List Nat} ->
   --   Tensor oldShape a ->
   --   {auto prf : prod oldShape = prod newShape} ->
   --   Tensor newShape a
-
-
-
 
 -- Need to do some rewriting for preorder
 public export
@@ -71,22 +74,11 @@ preorderBinTreeNode (NodeS lt rt) x = ?preorderBinTreeNode_rhs_1
 --  _ | Right FZ = ?whn
 --  _ | Right (FS g) = ?whr
 
-
 public export
 maybeToList : Maybe =%> List
 maybeToList = !% \b => case b of 
   False => (0 ** absurd)
   True => (1 ** \_ => ())
-
-reshapeVectIndexes : (Vect n >< Vect m) =%> Vect (n * m)
-reshapeVectIndexes = (\_ => ()) <%! (\((), ()) => ?reshapeVects_rhs2)
-
-reshapeVects :
-  (Vect n >< Vect m) `fullOf` a -> 
-  Vect (n * m) `fullOf` a
-reshapeVects (((), ()) <| index)
-  = () <| ?reshapeVects_rhs_4
-
 
 
 -- public export
@@ -95,5 +87,3 @@ reshapeVects (((), ()) <| index)
 -- traverseLeaf (NodeS lt rt) (GoLeft x) = weakenN (numLeaves rt) (traverseLeaf lt x)
 -- traverseLeaf (NodeS lt rt) (GoRight x) = shift (numLeaves lt) (traverseLeaf rt x)
 -- 
-
--- reshapings are isomorphisms
