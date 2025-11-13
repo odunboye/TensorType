@@ -23,10 +23,6 @@ namespace ListApplicative
     pure = fromList . pure
     fs <*> vs = fromList $ toList fs <*> toList vs
 
-  public export
-  listZip' : List' a -> List' b -> List' (a, b)
-  listZip' l1 l2 = fromList $ listZip (toList l1) (toList l2)
-
   ||| Note that usually it is said that List has two applicative structures
   ||| one defined above, and another one defined by `zipList` (Section 3 of 
   ||| https://www.staff.city.ac.uk/~ross/papers/Constructors.pdf).
@@ -39,9 +35,11 @@ namespace ListApplicative
   ||| and we cannot lawfully make `List` an applicative functor in such a way.
   ||| For instance, this is not a valid applicative instance, because unital 
   ||| laws do not hold:
-  ||| Applicative List' where
-  |||   pure = fromList . pure
-  |||   fs <*> vs = fromList $ uncurry ($) <$> listZip (toList fs) (toList vs)
+  |||
+  ||| Applicative List where
+  |||   pure a = [a]
+  |||   fs <*> xs = uncurry ($) <$> listZip fs xs
+
 
 
 namespace BinTreeLeafApplicative

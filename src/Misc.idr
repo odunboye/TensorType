@@ -22,20 +22,6 @@ public export
 strength : Applicative f => a -> f b -> f (a, b)
 strength a fb = liftA2 (pure a) fb
 
-||| Prelude.Types already has one implementation of Applicative List
-||| This is the other one, which behaves like a zip
-namespace ListApplicative
-  public export
-  listZip : List a -> List b -> List (a, b)
-  listZip [] _ = []
-  listZip (x :: xs) [] = []
-  listZip (x :: xs) (y :: ys) = (x, y) :: listZip xs ys
-  
-  public export
-  [zipInstance] Applicative List where
-    pure a = [a]
-    fs <*> xs = uncurry ($) <$> listZip fs xs
-
 ||| Analogue of `(::)` for lists. 
 ||| Takes an element and prepends it to some 'vector' 
 public export
@@ -115,6 +101,11 @@ namespace List
   public export
   prod : Num a => List a -> a
   prod = foldr (*) (fromInteger 1)
+
+public export
+listZip : List a -> List b -> List (a, b)
+listZip (x :: xs) (y :: ys) = (x, y) :: listZip xs ys
+listZip _ _ = []
 
 public export
 maxInList : Ord a => List a -> Maybe a
@@ -530,3 +521,15 @@ filter'' p (x :: xs) with (filter' p xs)
 Prelude.absurd : Uninhabited t => t -> a
 
  -}
+
+h : {n : Nat} -> Vect n a -> Nat
+h xs = n
+
+
+g : {0 n : Nat} -> Vect n a -> Nat
+g [] = 0
+g (x :: xs) = 1 + (g xs)
+
+proof2 : (v : Vect n a) -> g v = n
+proof2 [] = Refl
+proof2 (x :: xs) = cong (1 +) (proof2 xs)

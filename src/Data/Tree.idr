@@ -150,6 +150,7 @@ namespace BinaryTrees
 
     {--
     In general no applicative instance for a tree with values only on nodes.
+    Note that you can define the `pure` and `liftA2`, but they won't satisfy applicative laws.
     See https://www.reddit.com/r/haskell/comments/cb1j40/comment/etct1xk/
     --} 
   
