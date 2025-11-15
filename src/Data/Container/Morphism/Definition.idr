@@ -26,9 +26,12 @@ namespace DependentLenses
 
   %name (=%>) f, g, h
 
+
+  public export prefix 0 %!
   public export
   (%!) : c1 =%> c2 -> (x : c1.Shp) -> (y : c2.Shp ** (c2.Pos y -> c1.Pos x))
   (%!) (!% f) x = f x
+
   
   ||| Composition of dependent lenses
   public export
@@ -53,6 +56,7 @@ namespace DependentCharts
 
   %name (=&>) f, g, h
 
+  public export prefix 0 &!
   public export
   (&!) : c1 =&> c2 -> (x : c1.Shp) -> (y : c2.Shp ** (c1.Pos x -> c2.Pos y))
   (&!) (!& f) x = f x
