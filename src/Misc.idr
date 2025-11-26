@@ -253,7 +253,7 @@ public export
 Uninhabited (IsNo (Equality.decEq x x)) where
   uninhabited y with (decEq x x)
     _ | (Yes _) with (y)
-      _ | (ItIsNo _) impossible
+      _ | ItIsNo impossible
     _ | (No contra) = contra Refl
 
 
