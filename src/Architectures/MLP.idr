@@ -47,7 +47,8 @@ mlpNonDependentPara (S k) activation = ?wiii_11 -- MkNonDep ?ppp ?fff
 public export
 simpleNLayerNet : {features : Nat} -> (n : Nat) ->
   Tensor [features] Double -\-> Tensor [features] Double
-simpleNLayerNet n = multiLayerPerceptron n (trivialParam Tensor.sigmoid)
+simpleNLayerNet n = multiLayerPerceptron n (trivialParam sigmoid)
+
 
 public export
 exampleInput : Tensor [2] Double

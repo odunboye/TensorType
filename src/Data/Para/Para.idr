@@ -20,12 +20,6 @@ public export
 a -\-> b = Para a b
 
 public export
-composePara : a -\-> b -> b -\-> c -> a -\-> c
-composePara (MkPara p f) (MkPara q g) = MkPara
-  (\x => (p' : p x ** q (f x p')))
-  (\x, (p' ** q') => g (f x p') q')
-
-public export
 trivialParam : (a -> b) -> a -\-> b
 trivialParam f = MkPara 
   (\_ => Unit)
@@ -34,6 +28,18 @@ trivialParam f = MkPara
 public export
 id : a -\-> a
 id = trivialParam id
+
+public export
+composePara : a -\-> b -> b -\-> c -> a -\-> c
+composePara (MkPara p f) (MkPara q g) = MkPara
+  (\x => (p' : p x ** q (f x p')))
+  (\x, (p' ** q') => g (f x p') q')
+
+namespace ComposeParaTrivialParamLeft
+  public export
+  composePara : a -\-> b -> (b -> c) -> a -\-> c
+  composePara fp g = Para.composePara fp (trivialParam g)
+
 
 public export
 data IsNotDependent : Para a b -> Type where

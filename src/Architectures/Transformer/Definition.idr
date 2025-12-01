@@ -24,4 +24,4 @@ Transformer {allAppl = Cons} {allAlg = Cons} softargmax
   = composePara (addResidual (SelfAttention softargmax)) (addResidual ffnet)
     where
       ffnet : CTensor [inputStructure, features] a -\-> CTensor [inputStructure, features] a
-      ffnet = paraMapFirstAxis (multiLayerPerceptron {a=a} {ieva=features} 2 (trivialParam Tensor.relu) {lastLayerActivation=False}) 
+      ffnet = paraMapFirstAxis (multiLayerPerceptron {a=a} {ieva=features} 2 (trivialParam relu) {lastLayerActivation=False}) 
