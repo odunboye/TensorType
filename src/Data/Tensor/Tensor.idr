@@ -891,6 +891,6 @@ namespace Concatenate
   ||| Concatenate two tensors along an existing axis, the first one
   ||| TODO extend to allow concatenation along an arbitrary axis
   public export
-  concat : {shape : List Nat} -> {x : Nat} ->
+  concat : {x : Nat} ->
     Tensor (x :: shape) a -> Tensor (y :: shape) a -> Tensor (x + y :: shape) a
   concat t t' = embedTopExt $ extractTopExt t ++ extractTopExt t'
