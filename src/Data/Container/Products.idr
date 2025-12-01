@@ -29,9 +29,7 @@ c1 >< c2 = ((s, s') : (c1.Shp, c2.Shp)) !> (c1.Pos s, c2.Pos s')
 ||| Coproduct of containers
 public export
 (>+<) : Cont -> Cont -> Cont
-c1 >+< c2 = (es : Either c1.Shp c2.Shp) !> (case es of
-  Left s => c1.Pos s
-  Right s' => c2.Pos s')
+c1 >+< c2 = (es : Either c1.Shp c2.Shp) !> either c1.Pos c2.Pos es
 
 ||| Composition of containers making Ext (c >@ d) = (Ext c) . (Ext d)
 ||| Non-symmetric in general, and not in diagrammatic order
