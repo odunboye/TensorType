@@ -1,9 +1,9 @@
 module Data.Container.Object.Definition
 
-||| Containers capture the idea that datatypes consist of memory locations where
-||| data can be stored.  Each memory location is a one 'shape' of data, and 
-||| there are `Shp : Type` many of them. These locations are usually referred 
-||| to as 'positions'
+||| Containers capture the idea that datatypes consist of groups of memory 
+||| locations where data can be stored. Locations for a particular group are 
+||| referred to as 'positions' and a particular group is referred to as a
+||| 'shape'.
 public export
 record Cont where
   constructor (!>)
