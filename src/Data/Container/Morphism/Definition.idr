@@ -105,7 +105,10 @@ namespace Cartesian
   (:&) : c1 =:> c2 -> c1 =&> c2
   (:&) (!: f) = !& \x => let (y ** ky) = f x in (y ** forward ky)
     
-
+||| Pairing of all possible combinations of inputs to a particular lens
+public export
+lensInputs : {c, d : Cont} -> c =%> d -> Cont
+lensInputs l = (x : c.Shp) !> d.Pos (fst ((%!) l x))
 
 
 -- experimental stuff below
