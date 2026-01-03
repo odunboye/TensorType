@@ -36,6 +36,7 @@ modules = Data.Container
         , Data.Tensor
         , Data.Tensor.Tensor
         , Data.Tensor.Utils
+        , Data.Layout
         , Data.Para
         , Data.Para.Para
         , Data.Functor.Naperian

@@ -193,7 +193,6 @@ multFin : {m, n : Nat} -> Fin m -> Fin n -> Fin (m * n)
 multFin {n = (S _)} FZ y = FZ
 multFin {n = (S _)} (FS x) y = y + weaken (multFin x y)
 
-
 ||| Splits xs at each occurence of delimeter (general version for lists)
 public export
 splitList : Eq a =>

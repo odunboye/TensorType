@@ -6,6 +6,7 @@ import public Data.Fin.Split
 import public Data.Container
 import Data.Container.Object.Instances as Cont
 
+import public Data.Layout
 import public Misc
 
 %hide Syntax.WithProof.prefix.(@@) -- used here for indexing
@@ -559,6 +560,7 @@ namespace TensorInstances
     positions = extToVector positionsCont
 
   namespace ShowInstance
+    ||| TODO include LayoutOrder as argument, or maybe that should be in Display
     public export
     data AllShow : List Cont -> Type -> Type where
       Nil : Show a => AllShow [] a
@@ -695,14 +697,7 @@ rt = fromConcreteTy (Node 'c' [Leaf 'c', Leaf 'd'])
 
 
 namespace Reshape
-  public export
-  wrap : {c, d : Cont} ->
-    c =%> d ->
-    Cont.Tensor [c] =%> Cont.Tensor [d]
-  wrap (!% f) = !% \e => let (y ** ky) = f (shapeExt e)
-                         in (y <| \_ => () ** \(cp ** ()) => (ky cp ** ()))
-
-  ||| Effectively a wrapper around `extMap`
+  ||| A wrapper around `extMap`
   ||| Allows us to define views, traversals and general reshaping
   public export
   restructure : {cs, ds : List Cont} ->
@@ -710,57 +705,77 @@ namespace Reshape
     CTensor cs a -> CTensor ds a
   restructure f = MkT . extMap f . GetT
 
-  treeExample1 : CTensor [BinTree] Double
-  treeExample1 = fromConcreteTy $ Node 60 (Node 7 (Leaf (-42)) (Leaf 46)) (Leaf 2)
-
-  traversalExample : CTensor [List] Double
-  traversalExample = restructure (wrap inorder) treeExample1
-
-  ||| Isomorphism between a tensor of a particular shape, and a vector with
-  ||| the length equal to the product of the shape elements
-  ||| Down the line, we'll want to track the device we perform computation on,
-  ||| and do this kind of transformation selectively.
-  ||| Here we also need to be explicit about whether we're using a column-major
-  ||| or row-major order: following PyTorch and NumPy row-major is chosen.
-  namespace CubicalShapeProductIso
-    public export
-    toVectProd : {shape : List Nat} ->
-      Tensor shape a ->
-      Vect' (prod shape) a
-    toVectProd {shape = []} (MkT t) = () <| \_ => extract t
-    toVectProd {shape = (n :: ns)} t =
-      let tm = index . toVectProd . lookup (extractTopExt t)
-      in tabulate (uncurry tm . splitProd) -- Split.splitProd is row-major
-
-    public export
-    fromVectProd : {shape : List Nat} ->
-      Vect' (prod shape) a ->
-      Tensor shape a
-    fromVectProd {shape = []} (() <| index) = embed (index FZ)
-    fromVectProd {shape = (n :: ns)} (() <| index) = embedTopExt $
-      () <| \i => fromVectProd $ () <| index . (indexProd i)
-
-  ||| Reshape is simply a rewrite!
-  public export
-  dLensReshape : {oldShape, newShape : List Nat} ->
-    {auto prf : prod oldShape = prod newShape} ->
-    Vect (prod oldShape) =%> Vect (prod newShape)
-  dLensReshape = !% \() => (() ** \i => rewrite prf in i)
-
-  ||| Restructuring for cubical tensors that leaves number of elements unchanged
+  ||| Reshape is `restructure` for cubical tensors that leaves number of 
+  ||| elements unchanged.  This is currently by
+  ||| 1) flattening out the entire tensor into a vector
+  ||| 2) recast the type to be of the right shape
+  ||| 3) unflatten the vector into the right shape
+  ||| Importantly, the content of tensors is never touched, only the shape is
+  ||| manipulated
   public export
   reshape : {oldShape, newShape : List Nat} ->
-    Tensor oldShape a ->
+    CTensor (Vect <$> oldShape) a ->
     {auto prf : prod oldShape = prod newShape} ->
-    Tensor newShape a
-  reshape t = fromVectProd $ extMap dLensReshape $ toVectProd t
+    CTensor (Vect <$> newShape) a
+  reshape t = restructure (reshape DefaultLayoutOrder) t
 
-  -- tEx : Tensor [2, 3] Integer
-  -- tEx = fromConcreteTy [ [1,2,3]
-  --                      , [4,5,6] ]
+  -- treeExample1 : CTensor [BinTree] Double
+  -- treeExample1 = fromConcreteTy $ Node 60 (Node 7 (Leaf (-42)) (Leaf 46)) (Leaf 2)
 
-  -- tEx2 : Tensor [6] Integer
-  -- tEx2 = reshape {oldShape=[2, 3]} {newShape=[6]} tEx
+  ||| Performs an in-order traversal of a binary tree tensor into a list tensor
+  traversalExample : CTensor [BinTree] Double -> CTensor [List] Double
+  traversalExample = restructure (wrapIntoVector inorder)
+
+  -- ||| Down the line, we'll also want to adjust how we perform this 
+  -- ||| transformation depending on the device we perform the computation on.
+
+
+
+
+tEx : Tensor [2, 3] Integer
+tEx = ># [ [1,2,3]
+         , [4,5,6] ]
+
+Ex2 : Tensor [6] Integer
+Ex2 = reshape {oldShape=[2,3]} {newShape=[6]} tEx
+
+-- Tl : List Nat
+-- Tl = [6]
+-- 
+-- tx : foldr {t=List} (*) 1 ?oldShape = foldr (*) 1 Tl
+-- tx = ?tx_rhs
+
+-- data MyT : Nat -> Type where
+--   MkMyT : {n : Nat} -> 
+
+data MyCType : Type -> Type where
+  MkMyCType : MyCType t
+
+MyType : Nat -> Type
+MyType n = MyCType (Vect n Char)
+
+
+opNat : Nat -> Nat
+opNat n = n * n
+
+||| Can recast one type to another if their square is the same.
+||| In other words, if they are the same up to negation
+resh : {n, m : Nat} ->
+  (0 x : MyType n) ->
+  {auto prf : opNat n = opNat m} ->
+  MyType y
+resh _ = MkMyCType
+
+mt : MyType 4
+mt = MkMyCType
+
+-- mtex : MyType (-3)
+-- mtex = resh mt
+
+
+
+
+
 
 namespace SetterGetter
   ||| Machinery for indexing into a CTensor
@@ -884,8 +899,6 @@ namespace Slice
   ||| What does it mean to slice a non-cubical tensor?
   ||| CTensor [BinTree, List] a
   namespace NonCubicalSlicing
-
-
 
 namespace Concatenate
   ||| Concatenate two tensors along an existing axis, the first one
