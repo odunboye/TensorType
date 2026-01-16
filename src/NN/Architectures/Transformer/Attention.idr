@@ -2,7 +2,6 @@ module NN.Architectures.Transformer.Attention
 
 import Data.Tensor
 import Data.Para
-import Data.Container.Interfaces
 import NN.Architectures.Softargmax
 
 ||| Generalised form of attention

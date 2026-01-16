@@ -4,9 +4,7 @@ import public Data.DPair
 import public Data.Fin.Split
 
 import public Data.Container
-import public Data.Container.Interfaces
 import public Data.Container.Object.Instances as Cont
-import public Data.Container.Object.Implementations
 
 import public Data.Layout
 import public Misc
@@ -219,7 +217,7 @@ namespace TensorInstances
   namespace ApplicativeInstance
     public export
     tensorReplicate : {shape : List Cont} ->
-      (allAppl : AllApplicative shape) =>
+      (allAppl : All TensorMonoid shape) =>
       (x : a) -> CTensor shape a
     tensorReplicate {shape = []} = embed
     tensorReplicate {shape = (_ :: _)} {allAppl = (::) _ _ }
@@ -230,23 +228,23 @@ namespace TensorInstances
 
     public export
     liftA2Tensor : {shape : List Cont} ->
-      (allAppl : AllApplicative shape) =>
+      (allAppl : All TensorMonoid shape) =>
       CTensor shape a -> CTensor shape b -> CTensor shape (a, b)
     liftA2Tensor {allAppl=[]} (MkT t) (MkT t') = embed (index t (), index t' ())
     liftA2Tensor {allAppl=(::) _ _} t t' = embedTopExt $
       uncurry liftA2Tensor <$> liftA2 (extractTopExt t) (extractTopExt t')
 
     public export
-    {shape : List Cont} -> (allAppl : AllApplicative shape) =>
+    {shape : List Cont} -> (allAppl : All TensorMonoid shape) =>
     Applicative (CTensor shape) where
       pure = tensorReplicate
       fs <*> xs = uncurry ($) <$> liftA2Tensor fs xs
 
-    ttt : {shape : List Cont} -> AllApplicative shape => (x : a) -> CTensor shape a
+    ttt : {shape : List Cont} -> All TensorMonoid shape => (x : a) -> CTensor shape a
     ttt x = pure x
 
 
-    -- tth : {shape : List Nat} -> AllApplicative (Vect <$> shape)
+    -- tth : {shape : List Nat} -> All TensorMonoid (Vect <$> shape)
     -- tth = %search
 
     -- tttc : {shape : List Nat} -> (x : a) -> Tensor shape a
@@ -292,14 +290,14 @@ namespace TensorInstances
 
   namespace NumericInstances
     public export
-    {shape : List Cont} -> Num a => AllApplicative shape =>
+    {shape : List Cont} -> Num a => All TensorMonoid shape =>
     Num (CTensor shape a) where
         fromInteger = tensorReplicate . fromInteger
         t + t' = uncurry (+) <$> liftA2Tensor t t'
         t * t' = uncurry (*) <$> liftA2Tensor t t'
 
     public export
-    {shape : List Cont} -> Neg a => AllApplicative shape =>
+    {shape : List Cont} -> Neg a => All TensorMonoid shape =>
     Neg (CTensor shape a) where
       negate = (negate <$>)
       xs - ys = (uncurry (-)) <$> liftA2 xs ys
@@ -309,17 +307,17 @@ namespace TensorInstances
     negNotFound = ?interfaceProblemsAgain
 
     public export
-    {shape : List Cont} -> Abs a => AllApplicative shape =>
+    {shape : List Cont} -> Abs a => All TensorMonoid shape =>
     Abs (CTensor shape a) where
       abs = (abs <$>)
 
     public export
-    {shape : List Cont} -> Fractional a => AllApplicative shape =>
+    {shape : List Cont} -> Fractional a => All TensorMonoid shape =>
     Fractional (CTensor shape a) where
       t / v = (uncurry (/)) <$> liftA2 t v
 
     public export
-    {shape : List Cont} -> Exp a => AllApplicative shape => Exp (CTensor shape a) where
+    {shape : List Cont} -> Exp a => All TensorMonoid shape => Exp (CTensor shape a) where
       exp = (exp <$>)
       minusInfinity = pure minusInfinity
 
@@ -522,7 +520,7 @@ namespace TensorInstances
 
     public export
     {shape : List Cont} ->
-    (allAppl : AllApplicative shape) => (allNaperian : AllNaperian shape) =>
+    (allAppl : All TensorMonoid shape) => (allNaperian : AllNaperian shape) =>
     Naperian (CTensor shape) where
       Log = IndexNaperian shape
       lookup = tensorLookup
@@ -606,14 +604,14 @@ namespace TensorInstances
   namespace TensorContractions
     public export
     dotWith : {shape : List Cont} ->
-      Algebra (CTensor shape) c => AllApplicative shape =>
+      Algebra (CTensor shape) c => All TensorMonoid shape =>
       (a -> b -> c) ->
       CTensor shape a -> CTensor shape b -> CTensor [] c
     dotWith f xs ys = embed $ reduce $ uncurry f <$> liftA2Tensor xs ys
 
     public export
     dot : {shape : List Cont} -> Num a =>
-      Algebra (CTensor shape) a => AllApplicative shape =>
+      Algebra (CTensor shape) a => All TensorMonoid shape =>
       CTensor shape a -> CTensor shape a -> CTensor [] a
     dot xs ys = dotWith (*) xs ys
 

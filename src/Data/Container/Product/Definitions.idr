@@ -1,4 +1,4 @@
-module Data.Container.Products
+module Data.Container.Product.Definitions
 
 import Data.DPair
 import Decidable.Equality
@@ -56,16 +56,7 @@ Deriv : (c : Cont) ->
 Deriv (shp !> pos) @{MkI}
   = ((s ** p) : DPair shp pos) !> (p' : pos s ** IsNo (decEq p p'))
 
-
 public export
-shapesOnly : (a : Type) -> Cont
-shapesOnly a = (x : a) !> Void
-
-public export
-DecEq Void where
-  decEq x1 _ = void x1
-
-shapesIoP : InterfaceOnPositions (shapesOnly a) DecEq
-shapesIoP = MkI
-
-derivConst : (a : Type) -> Ext (Deriv (shapesOnly a)) Integer
+pairExtensions : Ext c a -> Ext d b -> Ext (c >< d) (a, b)
+pairExtensions (shapeC <| indexC) (shapeD <| indexD)
+  = (shapeC, shapeD) <| \(posC, posD) => (indexC posC, indexD posD)

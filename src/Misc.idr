@@ -464,9 +464,9 @@ getBoth : (i : Interface2 a) => (a, a)
 getBoth = (getInterface1, getInterface2)
 
 
-ll : Num a => List a
+llll : Num a => List a
 
-ll2 : List (Num a => a)
+llll2 : List (Num a => a)
 
 lk : (a :  Type ** List (Interface1 a => a))
 lk = (Nat ** [3, 5])

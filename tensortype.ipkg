@@ -27,10 +27,12 @@ modules = Data.Container
         , Data.Container.Concrete.Instances
         , Data.Container.Applicative.Definition
         , Data.Container.Applicative.Instances
+        , Data.Container.Product.Definitions
+        , Data.Container.Product.Interfaces
+        , Data.Container.Product.InterfaceImplementations
         , Data.Container.Definitions
         , Data.Container.Instances
         , Data.Container.InstanceInterfaces
-        , Data.Container.Products
         , Data.Container.TreeUtils
         , Data.Container.SubTerm
         , Data.Tensor

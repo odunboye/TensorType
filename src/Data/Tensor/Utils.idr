@@ -5,7 +5,6 @@ import System.Random
 
 import Data.Tensor.Tensor
 import Data.Container.SubTerm
-import Data.Container.Object.Implementations
 import Misc
 
 
@@ -53,12 +52,12 @@ namespace CommonNames
 
 namespace ZerosOnes
   public export
-  zeros : Num a => {shape : List Cont} -> AllApplicative shape =>
+  zeros : Num a => {shape : List Cont} -> All TensorMonoid shape =>
     CTensor shape a
   zeros = tensorReplicate (fromInteger 0)
 
   public export
-  ones : Num a => {shape : List Cont} -> AllApplicative shape =>
+  ones : Num a => {shape : List Cont} -> All TensorMonoid shape =>
     CTensor shape a
   ones = tensorReplicate (fromInteger 1)
 
@@ -177,7 +176,7 @@ namespace Triangular
   -- public export
   -- triA : Num a => {c : Cont} ->
   --   (ip : InterfaceOnPositions c MOrd) =>
-  --   AllApplicative [c] =>
+  --   All TensorMonoid [c] =>
   --   (sh : c.Shp) -> CTensor [c, c] a
   -- triA sh = fromBool <$> cTriBool sh
 
@@ -205,7 +204,7 @@ namespace Triangular
 
   ||| Fill the elements of a tensor `t` with `fill` where `mask` is True
   public export
-  maskedFill : {shape : List Cont} -> Num a => AllApplicative shape =>
+  maskedFill : {shape : List Cont} -> Num a => All TensorMonoid shape =>
     (t : CTensor shape a) ->
     (mask : CTensor shape Bool) ->
     (fill : a) ->

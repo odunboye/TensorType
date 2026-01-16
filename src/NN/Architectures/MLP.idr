@@ -30,7 +30,7 @@ public export
 mlpNonDependentPara : {a : Type} -> Num a =>
   {ieva : Cont} ->
   (allAlg : AllAlgebra [ieva] a) =>
-  (allAppl : AllApplicative [ieva]) =>
+  (allAppl : All TensorMonoid [ieva]) =>
   (numLayers : Nat) ->
   (activation : CTensor [ieva] a -> CTensor [ieva] a) ->
   {default False lastLayerActivation : Bool} ->

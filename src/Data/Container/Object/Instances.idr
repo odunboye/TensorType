@@ -3,7 +3,7 @@ module Data.Container.Object.Instances
 import Data.Fin
 
 import public Data.Container.Object.Definition
-import public Data.Container.Products
+import public Data.Container.Product.Definitions
 import public Data.Container.TreeUtils
 
 ||| Empty container, isomorphic to Void
