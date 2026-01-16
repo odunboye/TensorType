@@ -35,6 +35,12 @@ composePara (MkPara p f) (MkPara q g) = MkPara
   (\x => (p' : p x ** q (f x p')))
   (\x, (p' ** q') => g (f x p') q')
 
+public export infixr 10 \>>
+
+public export
+(\>>) : a -\-> b -> b -\-> c -> a -\-> c
+(\>>) = composePara
+
 namespace ComposeParaTrivialParamLeft
   public export
   composePara : a -\-> b -> (b -> c) -> a -\-> c

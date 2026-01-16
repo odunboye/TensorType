@@ -6,6 +6,7 @@ import Data.Para
 import NN.Architectures.Affine
 import NN.Architectures.Activations
 
+
 ||| N-layer multi-layer perceptron with a specified activation function,
 ||| and flag for whether the last layer should have it
 public export
@@ -24,8 +25,41 @@ multiLayerPerceptron 1 activation {lastLayerActivation = True}
   = composePara affinePara activation
 multiLayerPerceptron (S (S k)) activation
   = composePara (composePara affinePara activation) (multiLayerPerceptron (S k) activation {lastLayerActivation = lastLayerActivation})
-  {-
 
+
+
+
+
+
+
+public export
+threeLayerPerceptron : {inputSize, outputSize : Nat} ->
+  Tensor [inputSize] Double -\-> Tensor [outputSize] Double
+threeLayerPerceptron =
+  let hiddenDimension1 = inputSize * 10
+      hiddenDimension2 = inputSize * 10
+  in     affinePara
+     \>> trivialParam Tensor.sigmoid
+     \>> affinePara {x=Vect hiddenDimension1}
+     \>> trivialParam Tensor.sigmoid
+     \>> affinePara {x=Vect hiddenDimension2}
+
+
+
+
+
+-- public export
+-- inputTensor : Tensor [3] Double
+-- inputTensor = ># [1, 2, 3]
+-- 
+-- 
+-- public export
+-- outputTensor : IO (Tensor [2] Double)
+-- outputTensor = do
+--   let pr = randomRIO {io=IO} {a=(Param (trivialParam Tensor.sigmoid) inputTensor)}
+--   ?asdfasdf
+
+  {-
 public export
 mlpNonDependentPara : {a : Type} -> Num a =>
   {ieva : Cont} ->
