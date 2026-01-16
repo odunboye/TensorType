@@ -5,7 +5,6 @@ import Data.DPair
 import Data.Container.Object.Definition
 import Misc
 
-
 {-------------------------------------------------------------------------------
 Two different types of morphisms:
 dependent lenses, and dependent charts
@@ -37,11 +36,14 @@ namespace DependentLenses
   (%!) : c1 =%> c2 -> (x : c1.Shp) -> (y : c2.Shp ** (c2.Pos y -> c1.Pos x))
   (%!) (!% f) x = f x
 
-  
+  public export
+  (.fwd) : c1 =%> c2 -> c1.Shp -> c2.Shp
+  (.fwd) x y = ((%! x) y).fst
+
   ||| Composition of dependent lenses
   public export
   compDepLens : a =%> b -> b =%> c -> a =%> c
-  compDepLens (!% f) (!% g) = !% \x => let (b ** kb) = f x 
+  compDepLens (!% f) (!% g) = !% \x => let (b ** kb) = f x
                                            (c ** kc) = g b
                                        in (c ** kb . kc)
   public export
@@ -64,10 +66,10 @@ namespace DependentCharts
   public export
   (&!) : c1 =&> c2 -> (x : c1.Shp) -> (y : c2.Shp ** (c1.Pos x -> c2.Pos y))
   (&!) (!& f) x = f x
-  
+
   public export
   compDepChart : a =&> b -> b =&> c -> a =&> c
-  compDepChart (!& f) (!& g) = !& \x => let (b ** kb) = f x 
+  compDepChart (!& f) (!& g) = !& \x => let (b ** kb) = f x
                                             (c ** kc) = g b
                                         in (c ** kc . kb)
 
@@ -104,7 +106,7 @@ namespace Cartesian
   public export
   (:&) : c1 =:> c2 -> c1 =&> c2
   (:&) (!: f) = !& \x => let (y ** ky) = f x in (y ** forward ky)
-    
+
 ||| Pairing of all possible combinations of inputs to a particular lens
 public export
 lensInputs : {c, d : Cont} -> c =%> d -> Cont
@@ -116,7 +118,7 @@ lensInputs l = (x : c.Shp) !> d.Pos (fst ((%!) l x))
 val : Cont -> Type -> Cont
 val (shp !> pos) r = (s : shp) !> (pos s -> r)
 
--- Chart -> DLens morphism 
+-- Chart -> DLens morphism
 -- Tangent bundle to Contanget bundle, effectively
 valContMap : {c1, c2 : Cont} -> {r : Type}
   ->  (f : c1 =&> c2)

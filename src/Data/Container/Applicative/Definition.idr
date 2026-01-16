@@ -31,31 +31,17 @@ public export
 (.Pos) : (c : ContA) -> c.Shp -> Type
 (.Pos) c sh = (GetC c) .Pos sh
 
--- alternative method of using applicative instances, not sure yet if this is better
-public export
-data AllApplicative : List Cont -> Type where
-  Nil : AllApplicative []
-  Cons : (firstAppl : Applicative (Ext c)) =>
-    (restAppl : AllApplicative cs) =>
-    AllApplicative (c :: cs)
-
-
--- is there a better way?
-%hint
-public export
-oneToTwoAppl : AllApplicative [c] => AllApplicative [c, c]
-oneToTwoAppl @{Cons} = Cons
 
 
 
--- ||| This states a list version of 
+-- ||| This states a list version of
 -- ||| Ext c2 . Ext c1 = Ext (c2 . c1)
 -- public export
 -- ToContainerComp : {conts : List ContA} ->
 --   composeExtensionsA conts a -> Ext (composeContainersA conts) a
 -- ToContainerComp {conts = []} ce = ce
 -- ToContainerComp {conts = [c]} ce = ce
--- ToContainerComp {conts = (c :: d :: cs)} (Shp <| idx) = 
+-- ToContainerComp {conts = (c :: d :: cs)} (Shp <| idx) =
 --   let rst = (ToContainerComp {conts=(d :: cs)}) . idx
 --   in (Shp <| shapeExt . rst) <| (\(cp ** fsh) => index (rst cp) fsh)
 
@@ -75,21 +61,21 @@ oneToTwoAppl @{Cons} = Cons
 --   (f : a -> b) -> composeExtensionsA conts a -> composeExtensionsA conts b
 -- mapcomposeExtensionsA {conts = []} f e = f <$> e
 -- mapcomposeExtensionsA {conts = ((# c) :: cs)} f e = mapcomposeExtensionsA f <$> e
--- 
+--
 -- public export
 -- [FCE] {conts : List ContA} -> Functor (composeExtensionsA conts) where
 --   map f ce = ?vnn -- mapcomposeExtensionsA
--- 
+--
 -- testTT : {c : ContA} -> (f : String -> Int) -> composeExtensionsA [c] String -> composeExtensionsA [c] Int
 -- testTT f = map @{FCE {conts=[c]}} f
--- 
+--
 -- public export
 -- compExtReplicate : {conts : List ContA} ->
 --   a -> composeExtensionsA conts a
 -- compExtReplicate {conts = []} a = pure a
 -- compExtReplicate {conts = ((#) _ {applPrf} :: _)} a
 --   = compExtReplicate <$> pure a
--- 
+--
 -- public export
 -- compExtLiftA2 : {conts : List ContA} ->
 --   composeExtensionsA conts a ->

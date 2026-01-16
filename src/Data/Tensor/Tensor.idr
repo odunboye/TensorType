@@ -1,10 +1,12 @@
 module Data.Tensor.Tensor
 
-import Data.DPair
+import public Data.DPair
 import public Data.Fin.Split
 
 import public Data.Container
-import Data.Container.Object.Instances as Cont
+import public Data.Container.Interfaces
+import public Data.Container.Object.Instances as Cont
+import public Data.Container.Object.Implementations
 
 import public Data.Layout
 import public Misc
@@ -13,7 +15,7 @@ import public Misc
 
 {-------------------------------------------------------------------------------
 {-------------------------------------------------------------------------------
-This file defines the main construction of this repository `CTensor`, and 
+This file defines the main construction of this repository `CTensor`, and
 provides instances and utilities for working with them.
 `CTensor` is a datatype which is simply a wrapper around the extension of
 a composition of containers.
@@ -28,7 +30,7 @@ Functionality includes:
 * Converting to and from concrete types
 * Various tensor contractions
 * Slicing for cubical tensors
-* Getters 
+* Getters
 * Setters (TODO)
 * Functionality for general reshaping such as views, traversals
 * Concrete reshape for cubical tensors
@@ -46,7 +48,7 @@ record CTensor (shape : List Cont) (a : Type) where
 
 %name CTensor t, t', t''
 
-||| Cubical tensors. Used name 'Tensor' for backwards compatibility with 
+||| Cubical tensors. Used name 'Tensor' for backwards compatibility with
 ||| terminology in the numpy/pytorch ecosystem
 public export
 Tensor : (shape : List Nat) -> Type -> Type
@@ -66,7 +68,7 @@ namespace NestedTensorUtils
   embed a = MkT (toScalar a)
 
   ||| With the added data of the wrapper around (Ext (Tensor shape) a), this
-  ||| effectively states a list version of the following isomorphism 
+  ||| effectively states a list version of the following isomorphism
   ||| Ext c . Ext d = Ext (c . d)
   public export
   fromExtensionComposition : {shape : List Cont} ->
@@ -75,7 +77,7 @@ namespace NestedTensorUtils
   fromExtensionComposition {shape = (_ :: _)} (sh <| contentAt) = MkT $
     let rest = GetT . fromExtensionComposition . contentAt
     in (sh <| shapeExt . rest) <| \(cp ** fsh) => index (rest cp) fsh
-  
+
   public export
   toExtensionComposition : {shape : List Cont} ->
     CTensor shape a -> composeExtensions shape a
@@ -102,7 +104,7 @@ namespace NestedTensorUtils
   public export
   extToVector : Ext c a -> CTensor [c] a
   extToVector e = MkT $ (shapeExt e <| \_ => ()) <| \(cp ** ()) => index e cp
-   
+
   public export
   vectorToExt : CTensor [c] a -> Ext c a
   vectorToExt (MkT t) = shapeExt (shapeExt t) <| \cp => index t (cp ** ())
@@ -113,7 +115,7 @@ namespace NestedTensorUtils
 
   public export
   fromNestedTensor : CTensor [c] (CTensor cs a) -> CTensor (c :: cs) a
-  fromNestedTensor = embedTopExt . vectorToExt 
+  fromNestedTensor = embedTopExt . vectorToExt
 
   public export
   tensorMapFirstAxis : (f : CTensor cs a -> CTensor ds a) ->
@@ -136,7 +138,7 @@ namespace TensorFromConcrete
   concreteTypeTensor [] {allConcrete = []} = concreteType {cont=Scalar}
   concreteTypeTensor (c :: cs) {allConcrete = Cons @{fc}}
     = (concreteType @{fc}) . (concreteTypeTensor cs)
-  
+
   public export
   concreteTypeFunctor : {shape : List Cont} ->
     (allConcrete : AllConcrete shape) =>
@@ -145,29 +147,29 @@ namespace TensorFromConcrete
     = concreteFunctor {cont=Scalar}
   concreteTypeFunctor {shape = (c :: cs)} {allConcrete = Cons @{fc}}
     = Functor.Compose @{concreteFunctor @{fc} } @{concreteTypeFunctor}
-  
+
   public export
   concreteToExtensions : {shape : List Cont} ->
     (allConcrete : AllConcrete shape) =>
     concreteTypeTensor shape a -> composeExtensions shape a
   concreteToExtensions {shape = []} {allConcrete = []} ct = fromConcreteTy ct
-  concreteToExtensions {shape = (_ :: _)} {allConcrete = Cons} ct = 
-    concreteToExtensions <$> fromConcreteTy ct 
-  
+  concreteToExtensions {shape = (_ :: _)} {allConcrete = Cons} ct =
+    concreteToExtensions <$> fromConcreteTy ct
+
   public export
   extensionsToConcreteType : {shape : List Cont} ->
     (allConcrete : AllConcrete shape) =>
     composeExtensions shape a -> concreteTypeTensor shape a
   extensionsToConcreteType {shape = []} {allConcrete = []} ct = toConcreteTy ct
-  extensionsToConcreteType {shape = (_ :: _)} {allConcrete = Cons @{fc}} ct 
+  extensionsToConcreteType {shape = (_ :: _)} {allConcrete = Cons @{fc}} ct
     = (map @{concreteFunctor @{fc}} extensionsToConcreteType) (toConcreteTy ct)
-  
+
   public export
   toTensor : {shape : List Cont} ->
     (allConcrete : AllConcrete shape) =>
     concreteTypeTensor shape a -> CTensor shape a
   toTensor = fromExtensionComposition . concreteToExtensions
-  
+
   public export
   fromTensor : {shape : List Cont} ->
     (allConcrete : AllConcrete shape) =>
@@ -187,7 +189,7 @@ namespace TensorFromConcrete
     (allConcrete : AllConcrete shape) =>
     concreteTypeTensor shape a -> CTensor shape a
   fromConcreteTy = toTensor
-  
+
   public export
   toConcreteTy : {shape : List Cont} ->
     (allConcrete : AllConcrete shape) =>
@@ -195,7 +197,7 @@ namespace TensorFromConcrete
   toConcreteTy = fromTensor
 
   public export prefix 0 >#, #>
-  
+
   ||| Prefix operator for converting from a concrete type to a tensor
   ||| We read it as a map `>` going into the tensor `#`
   public export
@@ -220,20 +222,20 @@ namespace TensorInstances
       (allAppl : AllApplicative shape) =>
       (x : a) -> CTensor shape a
     tensorReplicate {shape = []} = embed
-    tensorReplicate {shape = (_ :: _)} {allAppl = Cons}
+    tensorReplicate {shape = (_ :: _)} {allAppl = (::) _ _ }
       = fromExtensionComposition
       . pure
       . toExtensionComposition
       . tensorReplicate
-  
+
     public export
     liftA2Tensor : {shape : List Cont} ->
       (allAppl : AllApplicative shape) =>
       CTensor shape a -> CTensor shape b -> CTensor shape (a, b)
     liftA2Tensor {allAppl=[]} (MkT t) (MkT t') = embed (index t (), index t' ())
-    liftA2Tensor {allAppl=Cons} t t' = embedTopExt $
+    liftA2Tensor {allAppl=(::) _ _} t t' = embedTopExt $
       uncurry liftA2Tensor <$> liftA2 (extractTopExt t) (extractTopExt t')
-  
+
     public export
     {shape : List Cont} -> (allAppl : AllApplicative shape) =>
     Applicative (CTensor shape) where
@@ -286,7 +288,7 @@ namespace TensorInstances
 
   -- public export
   -- vectInterfacePos : {n : Nat} -> InterfaceOnPositions (Vect n) DecEq
-  -- vectInterfacePos = MkI 
+  -- vectInterfacePos = MkI
 
   namespace NumericInstances
     public export
@@ -323,7 +325,7 @@ namespace TensorInstances
 
 
   namespace AlgebraInstance
-    ||| Unlike all other instantiations of 'AllX', `AllAlgebra` is not 
+    ||| Unlike all other instantiations of 'AllX', `AllAlgebra` is not
     ||| stating that each container in an list has an algebra, but rather
     ||| 'cumulatively'. For instance, `AllAlgebra [c, d] a` is not defined as
     ||| `Algebra c a` and `Algebra d a`, bur rather as `Algebra c (Algebra d a)`
@@ -470,7 +472,7 @@ namespace TensorInstances
       Applicative f =>
       (a -> f b) -> CTensor shape a -> f (CTensor shape b)
     tensorTraverse {allTraversable = []} f t = pure <$> f (extract t)
-    tensorTraverse {allTraversable = Cons} f t = embedTopExt <$> 
+    tensorTraverse {allTraversable = Cons} f t = embedTopExt <$>
       traverse (\ct => tensorTraverse f ct) (extractTopExt t)
 
     public export
@@ -533,7 +535,7 @@ namespace TensorInstances
     --   lookup = ?eee
     --   tabulate = ?eeee
 
-    public export 
+    public export
     transposeMatrix : {i, j : Cont} ->
       (allNaperian : AllNaperian [i, j]) =>
       CTensor [i, j] a -> CTensor [j, i] a
@@ -542,11 +544,11 @@ namespace TensorInstances
       . transpose
       . toExtensionComposition
 
-    
+
     tm : Tensor [2, 3] a -> Tensor [3, 2] a
     tm t = transposeMatrix t
 
-    tmp : {i, j : Nat} -> Tensor [i, j] a -> Tensor [j, i] a 
+    tmp : {i, j : Nat} -> Tensor [i, j] a -> Tensor [j, i] a
     tmp t = transposeMatrix t
 
     ttm : {i, j : Cont} -> AllNaperian [i, j] => CTensor [i, j] a -> CTensor [j, i] a
@@ -564,7 +566,7 @@ namespace TensorInstances
     public export
     data AllShow : List Cont -> Type -> Type where
       Nil : Show a => AllShow [] a
-      -- for type below, we should be able to define what shExt is without referencing CTensor cs a? 
+      -- for type below, we should be able to define what shExt is without referencing CTensor cs a?
       Cons : Show (c `fullOf` CTensor cs a) =>
        AllShow (c :: cs) a
 
@@ -614,23 +616,26 @@ namespace TensorInstances
       Algebra (CTensor shape) a => AllApplicative shape =>
       CTensor shape a -> CTensor shape a -> CTensor [] a
     dot xs ys = dotWith (*) xs ys
-    
+
     public export
-    outerWith : {i, j : Cont} -> (allAppl : AllApplicative [i, j]) =>
+    outerWith : {i, j : Cont} ->
+      (TensorMonoid i) =>
+      (TensorMonoid j) =>
       (a -> b -> c) ->
       CTensor [i] a -> CTensor [j] b -> CTensor [i, j] c
-    outerWith {allAppl = Cons} f t t' =
+    outerWith f t t' =
       let tt = (\(t, a) => strength a t) <$> strength t' t
       in uncurry f <$> fromNestedTensor tt
 
     public export
-    outer : {i, j : Cont} -> Num a => 
-      (allAppl : AllApplicative [i, j]) =>
+    outer : {i, j : Cont} -> Num a =>
+      (TensorMonoid i) =>
+      (TensorMonoid j) =>
       CTensor [i] a -> CTensor [j] a -> CTensor [i, j] a
     outer = outerWith (*)
 
     public export
-    matrixVectorProduct : Num a => {f, g : Cont} -> AllApplicative [g] =>
+    matrixVectorProduct : Num a => {f, g : Cont} -> TensorMonoid g =>
       AllAlgebra [g] a =>
       CTensor [f, g] a -> CTensor [g] a -> CTensor [f] a
     matrixVectorProduct m v = fromNestedTensor $
@@ -639,10 +644,10 @@ namespace TensorInstances
 
     public export
     vectorMatrixProduct : Num a => {f, g : Cont} ->
-      (allAppl : AllApplicative [f]) =>
+      (TensorMonoid f) =>
       Algebra (Ext f) (CTensor [g] a) =>
       CTensor [f] a -> CTensor [f, g] a -> CTensor [g] a
-    vectorMatrixProduct {allAppl = Cons} v m =
+    vectorMatrixProduct v m =
       let em : Ext f (CTensor [g] a) := extractTopExt m
           ev : Ext f (CTensor [] a) := extractTopExt v
       in reduce $ (\(x, gx) => ((extract x) *) <$> gx) <$> liftA2 ev em
@@ -650,19 +655,19 @@ namespace TensorInstances
       --in extract $ dotWith (\x, gx => (x *) <$> gx) v t
 
     public export
-    matMul : Num a => {f, g, h : Cont} -> AllApplicative [g] =>
+    matMul : Num a => {f, g, h : Cont} -> TensorMonoid g =>
       Algebra (Ext g) (CTensor [h] a) =>
       CTensor [f, g] a -> CTensor [g, h] a -> CTensor [f, h] a
-    matMul m1 m2 = fromNestedTensor $ 
+    matMul m1 m2 = fromNestedTensor $
       toNestedTensor m1 <&> (\row => vectorMatrixProduct row m2)
 
     -- "ij,kj->ki"
     public export
     matrixMatrixProduct : {f, g, h : Cont} -> Num a =>
-      AllApplicative [g] =>
+      TensorMonoid g =>
       AllAlgebra [g] a =>
       CTensor [f, g] a -> CTensor [h, g] a -> CTensor [h, f] a
-    matrixMatrixProduct m1 m2 = fromNestedTensor $ 
+    matrixMatrixProduct m1 m2 = fromNestedTensor $
       matrixVectorProduct m1 <$> toNestedTensor m2
 
 tt0 : CTensor [] Integer
@@ -789,7 +794,7 @@ namespace SetterGetter
       (p : c.Pos (shapeExt (extractTopExt t))) ->
       Index cs (index (extractTopExt t) p) ->
       Index (c :: cs) t
-  
+
   %name Index is, js
 
   public export
@@ -805,7 +810,7 @@ namespace SetterGetter
     (t : CTensor shape a) -> Index shape t -> a
   (@@) = index
 
-  public export 
+  public export
   set : {shape : List Cont} ->
     (t : CTensor shape a) ->
     (iop : InterfaceOnPositions (Tensor shape) Eq) =>
@@ -826,11 +831,11 @@ namespace SetterGetter
   public export
   t00 : CTensor [Maybe, List] Integer
   t00 = ># Just [10, 20, 30, 40, 50, 60, 70]
-  
+
   public export
   t11 : Tensor [2, 3] Integer
   t11 = ># [[1,2,3], [4,5,6]]
-  
+
   public export
   t22 : CTensor [BinTree, List] Integer
   t22 = ># Node [1,2] (Leaf [3,4]) (Leaf [5,6])
@@ -840,7 +845,7 @@ namespace SetterGetter
 
   t333 : CTensor [Vect 2] Integer
   t333 = ># [1, 2]
-  
+
   t44 : CTensor [] Integer
   t44 = ># 13
 
@@ -853,11 +858,11 @@ namespace CubicalSetterGetter
   data IndexC : List Nat -> Type where
     Nil : IndexC []
     (::) : Fin n -> IndexC ns -> IndexC (n :: ns)
-  
+
   public export
   indexC : {shape : List Nat} -> Tensor shape a -> IndexC shape -> a
   indexC t [] = index (GetT t) ()
-  indexC t (i :: is) = indexC (index (GetT $ toNestedTensor t) (i ** ())) is 
+  indexC t (i :: is) = indexC (index (GetT $ toNestedTensor t) (i ** ())) is
 
   public export
   setC : {shape : List Nat} ->

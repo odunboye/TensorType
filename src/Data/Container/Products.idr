@@ -23,7 +23,7 @@ c1 >*< c2 = ((s, s') : (c1.Shp, c2.Shp)) !> Either (c1.Pos s) (c2.Pos s')
 ||| Monoid with CUnit
 public export
 (><) : Cont -> Cont -> Cont
-c1 >< c2 = ((s, s') : (c1.Shp, c2.Shp)) !> (c1.Pos s, c2.Pos s')
+c1 >< c2 = (ss : (c1.Shp, c2.Shp)) !> (c1.Pos (fst ss), c2.Pos (snd ss))
 
 
 ||| Coproduct of containers
@@ -47,7 +47,7 @@ c @> d = (ex : Ext d c.Shp) !> (dp : d.Pos (shapeExt ex) ** c.Pos (index ex dp))
 
 
 ||| Derivative of a container
-||| Given c=(Shp !> pos) the derivative can be thought of as 
+||| Given c=(Shp !> pos) the derivative can be thought of as
 ||| a shape s : Shp, a distinguished position p : pos s, and the set of *all other positions*
 public export
 Deriv : (c : Cont) ->
